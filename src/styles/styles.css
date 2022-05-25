@@ -1,0 +1,288 @@
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Set core root defaults */
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  font-family: sans-serif;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove all animations, transitions and smooth scroll for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px); /* 1 */
+  -webkit-clip-path: inset(50%);
+  clip-path: inset(50%); /* 2 */
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap; /* 3 */
+}
+
+#app {
+  min-height: 100vh;
+  background: url("../assets/bg.jpg") no-repeat center / cover
+    hsla(0, 0%, 0%, 0.5);
+  background-blend-mode: saturation;
+}
+
+.btn {
+  display: inline-block;
+  border: 0;
+  background-color: transparent;
+  border-radius: 0.25em;
+  text-transform: capitalize;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.icon {
+  width: 5rem;
+}
+
+.icon--sm {
+  width: 2rem;
+}
+
+.grid {
+  max-width: 80rem;
+  padding: 1.5em 3em;
+  margin-inline: auto;
+  color: aliceblue;
+  text-transform: capitalize;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+}
+
+.grid__full {
+  grid-column: 1 / -1;
+}
+
+.grid__left {
+  align-items: flex-start;
+}
+
+.forecast {
+  display: flex;
+  flex-direction: column;
+}
+
+.forecast__description {
+  font-size: 2.5rem;
+  font-weight: 500;
+}
+
+.forecast__datetime {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.forecast__temp {
+  font-size: 3.5rem;
+  font-weight: 600;
+}
+
+.forecast__search {
+  position: relative;
+}
+
+.forecast__search > input {
+  border: 0;
+  border-bottom: 1px solid aliceblue;
+  background-color: transparent;
+  color: aliceblue;
+  padding: 0.25em 1.5em 0.25em 0.5em;
+}
+
+.forecast__search > input:focus {
+  outline: 0;
+}
+
+.forecast__search > input::placeholder {
+  color: aliceblue;
+}
+
+.error {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.25em);
+  left: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(158, 255, 255);
+}
+
+.error.show {
+  display: inline-block;
+}
+
+.forecast__search::after {
+  content: "";
+  position: absolute;
+  right: 0.25em;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.75em;
+  aspect-ratio: 1;
+  background: url("../assets/search-icon.png") center / 65% no-repeat;
+  cursor: pointer;
+}
+
+.loader {
+  width: 1.75rem;
+  position: absolute;
+  right: 0.25em;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+}
+
+.loader-active::after {
+  display: none;
+}
+
+.loader-active > .loader {
+  display: block;
+}
+
+svg path,
+svg rect {
+  fill: aliceblue;
+}
+
+.forecast__icon {
+  margin-block: 1em;
+}
+
+.grid__right {
+  grid-column: 3 / -1;
+  gap: 2em;
+}
+
+.grid__right > div {
+  display: flex;
+  gap: 0.75em;
+}
+
+.grid__right .forecast__icon {
+  margin: 0;
+}
+
+.forecast__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.forecast__info > span:first-child {
+  font-size: 0.875rem;
+}
+
+.forecast__info > span:last-child {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.forecast-daily {
+  padding-block: 2em;
+  line-height: 1.2;
+  display: grid;
+  grid-template-columns: repeat(7, auto);
+  justify-content: space-between;
+}
+
+.forecast-day__name {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.forecast-day__temp {
+  display: flex;
+  flex-direction: column;
+  margin-block: 1em;
+}
+
+.forecast-day__temp > span:first-child {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.forecast-day__temp > span:last-child {
+  font-size: 0.875rem;
+}
+
+.forecast-day__icon {
+  max-width: 3rem;
+}
