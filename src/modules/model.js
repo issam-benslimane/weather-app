@@ -1,5 +1,5 @@
 import { curry, pipe, prop, reverseArgs } from "../helpers/fp-helpers";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 const API_KEY = "ad1e458b65a19d068c1fe95fd0b5b9c5";
 const tempUnits = {
@@ -37,13 +37,18 @@ async function fetchForecast(unit, { city, lat, lon }) {
     `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&units=${unit}&appid=${API_KEY}`
   );
   const data = await response.json();
-  return { city, ...data };
+  return { city, unit, ...data };
 }
 
-async function processData(unit, data) {
+function processData(data) {
+  return { ...processBasicForecast(data), daily: processDailyForecast(data) };
+}
+
+function processBasicForecast(data) {
   const {
     timezone,
     city,
+    unit,
     current: {
       temp,
       feels_like,
@@ -69,6 +74,23 @@ async function processData(unit, data) {
   };
 }
 
+function processDailyForecast(data) {
+  const { daily, unit } = data;
+  return daily.map((e, i) => {
+    const {
+      temp: { min, max },
+      weather: [{ icon }],
+    } = e;
+
+    return {
+      icon,
+      day: getDayOfTheWeek(i),
+      min: pipe(Math.round, formatTemp(unit))(min),
+      max: pipe(Math.round, formatTemp(unit))(max),
+    };
+  });
+}
+
 function addUnit(unit, val) {
   return `${val} ${unit}`;
 }
@@ -87,6 +109,11 @@ function formatDateTime(pattern, timezone) {
   return format(new Date(formatter), pattern);
 }
 
+function getDayOfTheWeek(amount) {
+  const date = addDays(new Date(), amount);
+  return amount ? format(date, "eeee") : "Today";
+}
+
 export default function model(currentLocation, unit = "metric") {
   const setLocation = async (location) =>
     (currentLocation =
@@ -95,11 +122,7 @@ export default function model(currentLocation, unit = "metric") {
         : location);
 
   const getForecast = () =>
-    [
-      fetchCoordsByCity,
-      curry(fetchForecast)(unit),
-      curry(processData)(unit),
-    ].reduce(
+    [fetchCoordsByCity, curry(fetchForecast)(unit), processData].reduce(
       async (cum, fc) => fc(await cum),
       Promise.resolve(currentLocation)
     );

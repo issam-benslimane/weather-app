@@ -7,6 +7,9 @@ import {
   addClass,
   removeClass,
   getParent,
+  createElement,
+  appendDOMChild,
+  removeChildren,
 } from "../helpers/dom";
 import {
   curry,
@@ -24,8 +27,9 @@ const searchInput = qs("input");
 const errorText = qs(".error");
 const loader = qs(".loader");
 const forecast = [...qsa(".forecast")];
+const forecastDaily = qs(".forecast-daily");
 const getClass = curry(getAttr)("class");
-const getKeyFromClass = curry(matchWord)(/(?<=forecast__)\w+/);
+const getKeyFromClass = curry(matchWord)(/(?<=forecast__.*)\w+/);
 
 function updateView(data) {
   console.log(data);
@@ -37,6 +41,46 @@ function updateView(data) {
     )
   );
   zip(items, orderedData).forEach(spreadArgs(setDOMElement));
+  renderDailyForecast(data);
+}
+
+function renderDailyForecast({ daily }) {
+  removeChildren(forecastDaily);
+  daily.forEach(pipe(createForecastDay, curry(appendDOMChild)(forecastDaily)));
+}
+
+function createForecastDay({ day, max, min, icon }) {
+  const wrapper = () =>
+    createElement("div", {
+      attr: [["class", "forecast-day"]],
+      children: [currentDay, tempWrapper, iconWrapper],
+    });
+  const currentDay = () =>
+    createElement("span", {
+      attr: [["class", "forecast-day__day"]],
+      content: day,
+    });
+  const tempWrapper = () =>
+    createElement("div", {
+      attr: [["class", "forecast-day__temp"]],
+      children: [tempHigh, tempLow],
+    });
+  const tempHigh = () =>
+    createElement("span", {
+      attr: [["class", "forecast-day__max"]],
+      content: max,
+    });
+  const tempLow = () =>
+    createElement("span", {
+      attr: [["class", "forecast-day__min"]],
+      content: min,
+    });
+  const iconWrapper = () =>
+    createElement("div", {
+      attr: [["class", "forecast-day__icon"]],
+      content: getIcon(icon),
+    });
+  return wrapper();
 }
 
 function getChildrenToUpdate(data) {

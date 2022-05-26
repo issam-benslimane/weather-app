@@ -263,7 +263,7 @@ svg rect {
   padding-block: 2em;
   line-height: 1.2;
   display: grid;
-  grid-template-columns: repeat(7, auto);
+  grid-template-columns: repeat(8, auto);
   justify-content: space-between;
 }
 
