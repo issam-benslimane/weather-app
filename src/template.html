@@ -7,6 +7,13 @@
     <title>Document</title>
   </head>
   <body>
+    <div class="dots-container">
+      <div class="dots"></div>
+      <div class="dots"></div>
+      <div class="dots"></div>
+      <div class="dots"></div>
+      <div class="dots"></div>
+    </div>
     <div id="app">
       <div class="grid">
         <div class="grid__left forecast">
@@ -18,7 +25,7 @@
           </div>
           <span class="forecast__temp"></span>
           <button class="btn" data-action="">display °F</button>
-          <div class="forecast__icon"></div>
+          <div class="forecast__icon icon"></div>
           <div class="forecast__search">
             <label for="location" class="sr-only"
               >search by city, state or zip code</label
@@ -63,7 +70,7 @@
 
         <div class="grid__right forecast">
           <div>
-            <div class="forecast__icon icon icon--sm">
+            <div class="icon icon--sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 id="Capa_1"
@@ -96,11 +103,11 @@
             </div>
             <div class="forecast__info">
               <span>feels like</span>
-              <span class="forecast__feels_like"></span>
+              <span class="forecast__feels"></span>
             </div>
           </div>
           <div>
-            <div class="forecast__icon icon icon--sm">
+            <div class="icon icon--sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -140,7 +147,7 @@
             </div>
           </div>
           <div>
-            <div class="forecast__icon icon icon--sm">
+            <div class="icon icon--sm">
               <svg
                 version="1.1"
                 id="Layer_1"
@@ -205,7 +212,7 @@
             </div>
           </div>
           <div>
-            <div class="forecast__icon icon icon--sm">
+            <div class="icon icon--sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 version="1.1"

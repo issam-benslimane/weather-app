@@ -1,5 +1,4 @@
 import { curry, pipe, prop, reverseArgs } from "../helpers/fp-helpers";
-import { stripPrefix } from "../helpers/utils";
 import { format } from "date-fns";
 
 const API_KEY = "ad1e458b65a19d068c1fe95fd0b5b9c5";
@@ -14,11 +13,12 @@ const formatHumidity = curry(addUnit)("%");
 const formatDay = curry(formatDate)("eeee, do MMM yy");
 const formatTime = curry(formatDate)("p");
 
-async function fetchCoordsByCity(city) {
+async function fetchCoordsByCity(location) {
   const response = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}`
+    `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}`
   );
   const {
+    name: city,
     coord: { lat, lon },
   } = await response.json();
   return { city, lat, lon };
@@ -29,7 +29,7 @@ async function fetchCityByCoords({ lat, lon }) {
     `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}`
   );
   const { name: city } = await response.json();
-  return { city, lat, lon };
+  return city;
 }
 
 async function fetchForecast(unit, { city, lat, lon }) {
@@ -50,16 +50,17 @@ async function processData(unit, data) {
       pressure,
       humidity,
       wind_speed,
-      weather: [{ description }],
+      weather: [{ description, icon }],
     },
   } = data;
 
   return {
     timezone,
     description,
+    icon,
     city,
     temp: formatTemp(unit)(temp),
-    feels_like: formatTemp(unit)(feels_like),
+    feels: formatTemp(unit)(feels_like),
     pressure: formatPressure(pressure),
     humidity: formatHumidity(humidity),
     wind: formatSpeed(wind_speed),
@@ -86,24 +87,31 @@ function formatDate(pattern, timezone) {
   return format(new Date(formatter), pattern);
 }
 
-export default function model(unit = "metric") {
-  const getForecastByCity = (city) =>
+export default function model(currentLocation, unit = "metric") {
+  const setLocation = async (location) =>
+    (currentLocation =
+      typeof location === "object"
+        ? await fetchCityByCoords(location)
+        : location);
+
+  const getForecast = () =>
     [
       fetchCoordsByCity,
       curry(fetchForecast)(unit),
       curry(processData)(unit),
-    ].reduce(async (cum, fc) => fc(await cum), Promise.resolve(city));
+    ].reduce(
+      async (cum, fc) => fc(await cum),
+      Promise.resolve(currentLocation)
+    );
 
-  const getForecastByCoords = ({ lon, lat }) =>
-    [
-      fetchCityByCoords,
-      curry(fetchForecast)(unit),
-      curry(processData)(unit),
-    ].reduce(async (cum, fc) => fc(await cum), Promise.resolve({ lon, lat }));
+  const getLocation = () => currentLocation;
 
-  const getUnit = () => unit;
-  const changeUnit = () =>
+  const getUnit = () => ({ unit, symbol: tempUnits[unit] });
+
+  const changeUnit = () => {
     unit === "metric" ? (unit = "standard") : (unit = "metric");
+    return tempUnits[unit];
+  };
 
-  return { getForecastByCity, getForecastByCoords, getUnit, changeUnit };
+  return { getForecast, getLocation, setLocation, getUnit, changeUnit };
 }

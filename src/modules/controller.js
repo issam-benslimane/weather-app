@@ -1,4 +1,4 @@
-import { pipe } from "../helpers/fp-helpers";
+import { pipe, prop, curry } from "../helpers/fp-helpers";
 
 function getCurrentLocationCoords() {
   return new Promise((res, rej) => {
@@ -16,23 +16,37 @@ function getCurrentLocationCoords() {
 
 export default function controller(model, view) {
   async function init() {
-    const currentPosition = await getCurrentLocationCoords();
     view.bind("search", showForecast);
-    pipe(model.getForecastByCoords, view.updateView)(currentPosition);
-    model.getForecastByCoords(currentPosition).then(view.updateView);
+    view.bind("units", changeUnit);
+
+    const currentPosition = await getCurrentLocationCoords();
+    view.setPageLoader(true);
+    await fetchForecast(currentPosition);
+    view.setPageLoader();
+    view.setUnitBtn(model.getUnit().symbol);
   }
 
   const showForecast = async (val) => {
-    view.setLoader(true);
-    model
-      .getForecastByCity(val)
-      .then(view.updateView)
-      .catch(view.displayError)
-      .finally(() => {
-        view.setLoader();
-        view.resetSearch();
-      });
+    view.setSearchLoader(true);
+    await fetchForecast(val, view.displayError);
+    view.setSearchLoader();
+    view.resetSearch();
   };
+
+  const changeUnit = async () => {
+    const currentLocation = model.getLocation();
+    model.changeUnit();
+    await fetchForecast(currentLocation);
+    pipe(model.getUnit, curry(prop)("symbol"), view.setUnitBtn)();
+  };
+
+  async function fetchForecast(location, error) {
+    return model
+      .setLocation(location)
+      .then((val) => model.getForecast(val))
+      .then(view.updateView)
+      .catch(error);
+  }
 
   init();
 }
