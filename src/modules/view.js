@@ -24,6 +24,7 @@ import { matchWord } from "../helpers/utils";
 const body = qs("body");
 const changeUnitsBtn = qs("[data-action]");
 const searchInput = qs("input");
+const searchBtn = qs(".search-btn");
 const errorText = qs(".error");
 const loader = qs(".loader");
 const forecast = [...qsa(".forecast")];
@@ -96,30 +97,41 @@ function displayError(err) {
   addClass(errorText, "show");
 }
 
-function setPageLoader(isLoading = false) {
-  isLoading ? addClass(body, "loading") : removeClass(body, "loading");
+function setPageLoader() {
+  const isLoading = body.matches(".loading");
+  isLoading ? removeClass(body, "loading") : addClass(body, "loading");
 }
 
-function setSearchLoader(isLoading = false) {
+function setSearchLoader() {
   const parent = getParent(loader);
+  const isLoading = parent.matches(".loader-active");
   isLoading
-    ? addClass(parent, "loader-active")
-    : removeClass(parent, "loader-active");
+    ? removeClass(parent, "loader-active")
+    : addClass(parent, "loader-active");
 }
-
-function setLoader(type, isLoading) {}
 
 function resetSearch() {
   searchInput.value = null;
 }
 
 function handleSearch(action, ev) {
-  if (ev.key !== "Enter" || !this.value) return;
+  if (ev.type === "keydown" && ev.key !== "Enter") return;
+  if (!this.value.trim()) return;
   action(this.value);
 }
 
 function setUnitBtn(unit) {
   setDOMElement(changeUnitsBtn, `display ${unit}`);
+}
+
+function bind(type, handler) {
+  if (type == "search") {
+    on(searchInput, "keydown", handleSearch.bind(searchInput, handler));
+    on(searchBtn, "click", handleSearch.bind(searchInput, handler));
+  }
+  if (type == "units") {
+    on(changeUnitsBtn, "click", handler);
+  }
 }
 
 function getIcon(code) {
@@ -186,15 +198,6 @@ function getIcon(code) {
   }
 
   return "";
-}
-
-function bind(type, handler) {
-  if (type == "search") {
-    on(searchInput, "keydown", handleSearch.bind(searchInput, handler));
-  }
-  if (type == "units") {
-    on(changeUnitsBtn, "click", handler);
-  }
 }
 
 export default function view() {

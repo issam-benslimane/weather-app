@@ -41,13 +41,18 @@ async function fetchForecast(unit, { city, lat, lon }) {
 }
 
 function processData(data) {
-  return { ...processBasicForecast(data), daily: processDailyForecast(data) };
+  const { city, unit } = data;
+  return {
+    unit,
+    city,
+    ...processBasicForecast(data),
+    ...processDailyForecast(data),
+  };
 }
 
 function processBasicForecast(data) {
   const {
     timezone,
-    city,
     unit,
     current: {
       temp,
@@ -63,7 +68,6 @@ function processBasicForecast(data) {
     timezone,
     description,
     icon,
-    city,
     temp: pipe(Math.round, formatTemp(unit))(temp),
     feels: pipe(Math.round, formatTemp(unit))(feels_like),
     pressure: formatPressure(pressure),
@@ -76,7 +80,7 @@ function processBasicForecast(data) {
 
 function processDailyForecast(data) {
   const { daily, unit } = data;
-  return daily.map((e, i) => {
+  const arr = daily.map((e, i) => {
     const {
       temp: { min, max },
       weather: [{ icon }],
@@ -89,6 +93,7 @@ function processDailyForecast(data) {
       max: pipe(Math.round, formatTemp(unit))(max),
     };
   });
+  return { daily: arr };
 }
 
 function addUnit(unit, val) {
@@ -131,10 +136,8 @@ export default function model(currentLocation, unit = "metric") {
 
   const getUnit = () => ({ unit, symbol: tempUnits[unit] });
 
-  const changeUnit = () => {
+  const changeUnit = () =>
     unit === "metric" ? (unit = "standard") : (unit = "metric");
-    return tempUnits[unit];
-  };
 
   return { getForecast, getLocation, setLocation, getUnit, changeUnit };
 }

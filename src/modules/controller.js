@@ -20,14 +20,14 @@ export default function controller(model, view) {
     view.bind("units", changeUnit);
 
     const currentPosition = await getCurrentLocationCoords();
-    view.setPageLoader(true);
+    view.setPageLoader();
     await fetchForecast(currentPosition);
     view.setPageLoader();
     view.setUnitBtn(model.getUnit().symbol);
   }
 
   const showForecast = async (val) => {
-    view.setSearchLoader(true);
+    view.setSearchLoader();
     await fetchForecast(val, view.displayError);
     view.setSearchLoader();
     view.resetSearch();
@@ -43,7 +43,7 @@ export default function controller(model, view) {
   async function fetchForecast(location, error) {
     return model
       .setLocation(location)
-      .then((val) => model.getForecast(val))
+      .then(model.getForecast)
       .then(view.updateView)
       .catch(error);
   }

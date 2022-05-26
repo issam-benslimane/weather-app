@@ -193,28 +193,26 @@ select {
   display: inline-block;
 }
 
-.forecast__search::after {
-  content: "";
+.search-btn,
+.loader {
+  width: 1.75rem;
+  aspect-ratio: 1;
   position: absolute;
   right: 0.25em;
   top: 50%;
   transform: translateY(-50%);
-  width: 1.75em;
-  aspect-ratio: 1;
+}
+
+.search-btn {
   background: url("../assets/search-icon.png") center / 65% no-repeat;
   cursor: pointer;
 }
 
-.loader {
-  width: 1.75rem;
-  position: absolute;
-  right: 0.25em;
-  top: 50%;
-  transform: translateY(-50%);
+.loader-active > .search-btn {
   display: none;
 }
 
-.loader-active::after {
+.loader {
   display: none;
 }
 
