@@ -167,6 +167,10 @@ select {
   padding: 0.25em 1.5em 0.25em 0.5em;
 }
 
+.forecast__search > input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .forecast__search > input:focus {
   outline: 0;
 }

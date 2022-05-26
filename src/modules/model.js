@@ -10,8 +10,8 @@ const formatTemp = pipe(curry(reverseArgs(prop), 2)(tempUnits), curry(addUnit));
 const formatPressure = curry(addUnit)("hPa");
 const formatSpeed = curry(addUnit)("Km/h");
 const formatHumidity = curry(addUnit)("%");
-const formatDay = curry(formatDate)("eeee, do MMM yy");
-const formatTime = curry(formatDate)("p");
+const formatDate = curry(formatDateTime)("eeee, do MMM yy");
+const formatTime = curry(formatDateTime)("p");
 
 async function fetchCoordsByCity(location) {
   const response = await fetch(
@@ -59,12 +59,12 @@ async function processData(unit, data) {
     description,
     icon,
     city,
-    temp: formatTemp(unit)(temp),
-    feels: formatTemp(unit)(feels_like),
+    temp: pipe(Math.round, formatTemp(unit))(temp),
+    feels: pipe(Math.round, formatTemp(unit))(feels_like),
     pressure: formatPressure(pressure),
     humidity: formatHumidity(humidity),
     wind: formatSpeed(wind_speed),
-    day: formatDay(timezone),
+    day: formatDate(timezone),
     time: formatTime(timezone),
   };
 }
@@ -73,7 +73,7 @@ function addUnit(unit, val) {
   return `${val} ${unit}`;
 }
 
-function formatDate(pattern, timezone) {
+function formatDateTime(pattern, timezone) {
   let options = {
     timeZone: timezone,
     year: "numeric",
