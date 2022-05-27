@@ -77,6 +77,11 @@ export const getDOMChildren = pipe(
 export const removeChildren = (el) =>
   pipe(getDOMChildren, each(curry(removeDOMElement)(el)))(el);
 
+export function setCSSProperty(el, prop, val) {
+  el.style.setProperty(prop, val);
+  return el;
+}
+
 export function on(target, type, callback) {
   target.addEventListener(type, callback);
 }

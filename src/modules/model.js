@@ -1,5 +1,5 @@
 import { curry, pipe, prop, reverseArgs } from "../helpers/fp-helpers";
-import { format, addDays } from "date-fns";
+import { format, addDays, addHours } from "date-fns";
 
 const API_KEY = "ad1e458b65a19d068c1fe95fd0b5b9c5";
 const tempUnits = {
@@ -34,7 +34,7 @@ async function fetchCityByCoords({ lat, lon }) {
 
 async function fetchForecast(unit, { city, lat, lon }) {
   const response = await fetch(
-    `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&units=${unit}&appid=${API_KEY}`
+    `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely&units=${unit}&appid=${API_KEY}`
   );
   const data = await response.json();
   return { city, unit, ...data };
@@ -42,12 +42,11 @@ async function fetchForecast(unit, { city, lat, lon }) {
 
 function processData(data) {
   const { city, unit } = data;
-  return {
-    unit,
-    city,
-    ...processBasicForecast(data),
-    ...processDailyForecast(data),
-  };
+  return [
+    processBasicForecast,
+    processDailyForecast,
+    processHourlyForecast,
+  ].reduce((obj, fc) => ({ ...obj, ...fc(data) }), { unit, city });
 }
 
 function processBasicForecast(data) {
@@ -80,7 +79,7 @@ function processBasicForecast(data) {
 
 function processDailyForecast(data) {
   const { daily, unit } = data;
-  const arr = daily.map((e, i) => {
+  const filteredData = daily.map((e, i) => {
     const {
       temp: { min, max },
       weather: [{ icon }],
@@ -93,14 +92,31 @@ function processDailyForecast(data) {
       max: pipe(Math.round, formatTemp(unit))(max),
     };
   });
-  return { daily: arr };
+  return { daily: filteredData };
+}
+
+function processHourlyForecast(data) {
+  const { hourly, unit, timezone } = data;
+  const filteredData = hourly.map((e, i) => {
+    const {
+      temp,
+      weather: [{ icon }],
+    } = e;
+
+    return {
+      icon,
+      hour: getHour(timezone, i),
+      temp: pipe(Math.round, formatTemp(unit))(temp),
+    };
+  });
+  return { hourly: filteredData };
 }
 
 function addUnit(unit, val) {
   return `${val} ${unit}`;
 }
 
-function formatDateTime(pattern, timezone) {
+function getTimeByZone(timezone) {
   let options = {
     timeZone: timezone,
     year: "numeric",
@@ -110,13 +126,23 @@ function formatDateTime(pattern, timezone) {
     minute: "numeric",
     second: "numeric",
   };
-  const formatter = new Intl.DateTimeFormat([], options).format(new Date());
+  return new Intl.DateTimeFormat([], options).format(new Date());
+}
+
+function formatDateTime(pattern, timezone) {
+  const formatter = getTimeByZone(timezone);
   return format(new Date(formatter), pattern);
 }
 
 function getDayOfTheWeek(amount) {
   const date = addDays(new Date(), amount);
   return amount ? format(date, "eeee") : "Today";
+}
+
+function getHour(timezone, amount) {
+  const formatter = getTimeByZone(timezone);
+  const date = addHours(new Date(formatter), amount);
+  return format(date, "h aaa");
 }
 
 export default function model(currentLocation, unit = "metric") {

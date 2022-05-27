@@ -10,11 +10,15 @@ import {
   createElement,
   appendDOMChild,
   removeChildren,
+  delegate,
+  getDOMChildren,
+  setCSSProperty,
 } from "../helpers/dom";
 import {
   curry,
   filterOut,
   flatMap,
+  partial,
   pipe,
   spreadArgs,
   zip,
@@ -22,27 +26,34 @@ import {
 import { matchWord } from "../helpers/utils";
 
 const body = qs("body");
-const changeUnitsBtn = qs("[data-action]");
+const changeUnitsBtn = qs('[data-action="unitChange"]');
 const searchInput = qs("input");
-const searchBtn = qs(".search-btn");
+const searchBtn = qs('[data-action="search"]');
 const errorText = qs(".error");
 const loader = qs(".loader");
 const forecast = [...qsa(".forecast")];
-const forecastDaily = qs(".forecast-daily");
+const forecastDaily = qs(".forecast-daily__list");
+const forecastHourly = qs(".forecast-hourly__list");
+const sliderArrows = qs(".arrows");
+const forecastHourlySlider = slider(forecastHourly, getTotalSlides);
 const getClass = curry(getAttr)("class");
-const getKeyFromClass = curry(matchWord)(/(?<=forecast__.*)\w+/);
+const getKeyFromClass = pipe(
+  getClass,
+  curry(matchWord)(/(?<=forecast__.*)\w+/)
+);
 
 function updateView(data) {
   console.log(data);
   removeClass(errorText, "show");
   const items = getChildrenToUpdate(data);
   const orderedData = items.map(
-    pipe(getClass, getKeyFromClass, (key) =>
+    pipe(getKeyFromClass, (key) =>
       key === "icon" ? getIcon(data[key]) : data[key]
     )
   );
   zip(items, orderedData).forEach(spreadArgs(setDOMElement));
   renderDailyForecast(data);
+  renderHourlyForecast(data);
 }
 
 function renderDailyForecast({ daily }) {
@@ -50,47 +61,77 @@ function renderDailyForecast({ daily }) {
   daily.forEach(pipe(createForecastDay, curry(appendDOMChild)(forecastDaily)));
 }
 
+function renderHourlyForecast({ hourly }) {
+  removeChildren(forecastHourly);
+  hourly.forEach(
+    pipe(createForecastHour, curry(appendDOMChild)(forecastHourly))
+  );
+  forecastHourlySlider.resetSlide();
+}
+
 function createForecastDay({ day, max, min, icon }) {
-  const wrapper = () =>
-    createElement("div", {
-      attr: [["class", "forecast-day"]],
+  const li = () =>
+    createElement("li", {
+      attr: [["class", "forecast-daily__item"]],
       children: [currentDay, tempWrapper, iconWrapper],
     });
   const currentDay = () =>
     createElement("span", {
-      attr: [["class", "forecast-day__day"]],
+      attr: [["class", "forecast-daily__day"]],
       content: day,
     });
   const tempWrapper = () =>
     createElement("div", {
-      attr: [["class", "forecast-day__temp"]],
+      attr: [["class", "forecast-daily__temp"]],
       children: [tempHigh, tempLow],
     });
   const tempHigh = () =>
     createElement("span", {
-      attr: [["class", "forecast-day__max"]],
+      attr: [["class", "forecast-daily__max"]],
       content: max,
     });
   const tempLow = () =>
     createElement("span", {
-      attr: [["class", "forecast-day__min"]],
+      attr: [["class", "forecast-daily__min"]],
       content: min,
     });
   const iconWrapper = () =>
     createElement("div", {
-      attr: [["class", "forecast-day__icon"]],
+      attr: [["class", "forecast-daily__icon icon-md"]],
       content: getIcon(icon),
     });
-  return wrapper();
+  return li();
+}
+
+function createForecastHour({ hour, temp, icon }) {
+  const li = () =>
+    createElement("li", {
+      attr: [["class", "forecast-hourly__item"]],
+      children: [currentHour, currentTemp, iconWrapper],
+    });
+  const currentHour = () =>
+    createElement("span", {
+      attr: [["class", "forecast-hourly__hour"]],
+      content: hour,
+    });
+  const currentTemp = () =>
+    createElement("span", {
+      attr: [["class", "forecast-hourly__temp"]],
+      content: temp,
+    });
+  const iconWrapper = () =>
+    createElement("div", {
+      attr: [["class", "forecast-hourly__icon icon-md"]],
+      content: getIcon(icon),
+    });
+  return li();
 }
 
 function getChildrenToUpdate(data) {
   const items = flatMap((el) => [...qsa(`[class^="forecast__"]`, el)])(
     forecast
   );
-  return filterOut(pipe(getClass, getKeyFromClass, (key) => data[key] == null))(
-    items
-  );
+  return filterOut(pipe(getKeyFromClass, (key) => data[key] == null))(items);
 }
 
 function displayError(err) {
@@ -124,6 +165,45 @@ function setUnitBtn(unit) {
   setDOMElement(changeUnitsBtn, `display ${unit}`);
 }
 
+function slider(el, fc) {
+  const width = el.parentElement.offsetWidth;
+  const setProp = partial(setCSSProperty, el, "--transform");
+  let currentSlide = 0;
+
+  function isSlideValid() {
+    const totalSlides = fc(el);
+    return currentSlide >= 0 && currentSlide < totalSlides;
+  }
+
+  function nextSlide() {
+    const translateValue = -1 * width * ++currentSlide;
+    isSlideValid() ? setProp(`${translateValue}px`) : currentSlide--;
+  }
+
+  function prevSlide() {
+    const translateValue = -1 * width * --currentSlide;
+    isSlideValid() ? setProp(`${translateValue}px`) : currentSlide++;
+  }
+
+  function resetSlide() {
+    currentSlide = 0;
+    setProp(currentSlide);
+  }
+
+  return { nextSlide, prevSlide, resetSlide };
+}
+
+function handleSlider(target) {
+  const action = getAttr("data-action", target);
+  action == "next"
+    ? forecastHourlySlider.nextSlide()
+    : forecastHourlySlider.prevSlide();
+}
+
+function getTotalSlides(el) {
+  return getDOMChildren(el).length / 8;
+}
+
 function bind(type, handler) {
   if (type == "search") {
     on(searchInput, "keydown", handleSearch.bind(searchInput, handler));
@@ -131,6 +211,9 @@ function bind(type, handler) {
   }
   if (type == "units") {
     on(changeUnitsBtn, "click", handler);
+  }
+  if (type == "slider") {
+    delegate(sliderArrows, "[data-action]", "click", handleSlider);
   }
 }
 

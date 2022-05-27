@@ -18,6 +18,7 @@ export default function controller(model, view) {
   async function init() {
     view.bind("search", showForecast);
     view.bind("units", changeUnit);
+    view.bind("slider");
 
     const currentPosition = await getCurrentLocationCoords();
     view.setPageLoader();

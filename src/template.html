@@ -24,7 +24,7 @@
             <span class="forecast__time"></span>
           </div>
           <span class="forecast__temp"></span>
-          <button class="btn" data-action="">display °F</button>
+          <button class="btn" data-action="unitChange">display °F</button>
           <div class="forecast__icon icon"></div>
           <div class="forecast__search">
             <label for="location" class="sr-only"
@@ -36,7 +36,7 @@
               id="location"
               placeholder="Search Location..."
             />
-            <button class="btn search-btn"></button>
+            <button class="btn search-btn" data-action="search"></button>
             <div class="loader">
               <svg
                 version="1.1"
@@ -71,7 +71,7 @@
 
         <div class="grid__right forecast">
           <div>
-            <div class="icon icon--sm">
+            <div class="icon icon-sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 id="Capa_1"
@@ -108,7 +108,7 @@
             </div>
           </div>
           <div>
-            <div class="icon icon--sm">
+            <div class="icon icon-sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -148,7 +148,7 @@
             </div>
           </div>
           <div>
-            <div class="icon icon--sm">
+            <div class="icon icon-sm">
               <svg
                 version="1.1"
                 id="Layer_1"
@@ -213,7 +213,7 @@
             </div>
           </div>
           <div>
-            <div class="icon icon--sm">
+            <div class="icon icon-sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 version="1.1"
@@ -233,7 +233,45 @@
           </div>
         </div>
 
-        <div class="grid__full forecast-daily"></div>
+        <div class="grid__full forecast-daily">
+          <h2 class="heading">daily forecast</h2>
+          <ul class="forecast-daily__list"></ul>
+        </div>
+
+        <div class="grid__full forecast-hourly">
+          <h2 class="heading">hourly forecast</h2>
+          <div class="forecast-hourly__wrapper">
+            <div class="arrows">
+              <button class="btn arrows__prev" data-action="prev">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  version="1.1"
+                  viewBox="8.02 6 7.41 12"
+                  fill="#f5f5f5"
+                >
+                  <title>arrow_left</title>
+                  <path
+                    d="M15.422 16.594l-1.406 1.406-6-6 6-6 1.406 1.406-4.594 4.594z"
+                  />
+                </svg>
+              </button>
+              <button class="btn arrows__next" data-action="next">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  version="1.1"
+                  viewBox="8.58 6 7.41 12"
+                  fill="#f5f5f5"
+                >
+                  <title>arrow_right</title>
+                  <path
+                    d="M8.578 16.594l4.594-4.594-4.594-4.594 1.406-1.406 6 6-6 6z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <ul class="forecast-hourly__list"></ul>
+          </div>
+        </div>
       </div>
     </div>
   </body>
